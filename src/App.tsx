@@ -55,48 +55,68 @@ function App() {
    const isBallActive = keysPressed.size > 0 || Boolean(lastCommand)
 
    return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4'>
-         <div className='bg-white/10 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-white/20 relative'>
-            <ScoreDisplay score={score} />
-
-            <div className='text-center mb-6'>
-               <h1 className='text-4xl font-bold text-white mb-2 flex items-center justify-center gap-3'>
-                  <Gamepad2 className='text-yellow-400' />
-                  Voice Ball Game
-               </h1>
-               <p className='text-white/80'>Collect all the stars to win!</p>
+      <div className='min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden'>
+         <div className='flex h-screen'>
+            {/* Left side - Game Area (80%) */}
+            <div className='w-4/5 flex items-center justify-center p-6'>
+               <div className='relative'>
+                  <GameArea
+                     ballPosition={ballPosition}
+                     targetPosition={targetPosition}
+                     collectibles={collectibles}
+                     onAreaClick={handleGameAreaClick}
+                     isBallActive={isBallActive}
+                  />
+               </div>
             </div>
 
-            <GameArea
-               ballPosition={ballPosition}
-               targetPosition={targetPosition}
-               collectibles={collectibles}
-               onAreaClick={handleGameAreaClick}
-               isBallActive={isBallActive}
-            />
+            {/* Right side - Controls and Info (20%) */}
+            <div className='w-1/5 bg-white/10 backdrop-blur-md border-l border-white/20 overflow-y-auto'>
+               <div className='p-6 space-y-6'>
+                  {/* Header */}
+                  <div className='text-center'>
+                     <h1 className='text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2'>
+                        <Gamepad2 className='text-yellow-400' size={24} />
+                        Voice Ball
+                     </h1>
+                     <p className='text-white/80 text-sm'>Collect all stars!</p>
+                  </div>
 
-            <GameControls
-               isListening={isListening}
-               onToggleVoice={toggleVoiceControl}
-               onResetPosition={resetPosition}
-               onResetGame={resetGame}
-            />
+                  {/* Score Display */}
+                  <div className='bg-yellow-500/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-yellow-400/30'>
+                     <ScoreDisplay score={score} />
+                  </div>
 
-            <StatusDisplay
-               isListening={isListening}
-               lastCommand={lastCommand}
-               targetPosition={targetPosition}
-               ballPosition={ballPosition}
-            />
+                  {/* Game Controls */}
+                  <div className='space-y-3'>
+                     <GameControls
+                        isListening={isListening}
+                        onToggleVoice={toggleVoiceControl}
+                        onResetPosition={resetPosition}
+                        onResetGame={resetGame}
+                     />
+                  </div>
 
-            <Instructions />
+                  {/* Status Display */}
+                  <StatusDisplay
+                     isListening={isListening}
+                     lastCommand={lastCommand}
+                     targetPosition={targetPosition}
+                     ballPosition={ballPosition}
+                  />
 
-            <WinModal
-               show={showWinModal}
-               onPlayAgain={resetGame}
-               onClose={() => setShowWinModal(false)}
-            />
+                  {/* Instructions */}
+                  <Instructions />
+               </div>
+            </div>
          </div>
+
+         {/* Win Modal */}
+         <WinModal
+            show={showWinModal}
+            onPlayAgain={resetGame}
+            onClose={() => setShowWinModal(false)}
+         />
       </div>
    )
 }
