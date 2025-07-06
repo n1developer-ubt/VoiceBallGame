@@ -8,10 +8,11 @@ export const Instructions: React.FC = () => {
          <div className='text-gray-700 text-xs space-y-1'>
             <p>• Use arrow keys to move</p>
             <p>
-               • Say: <strong>"Up", "Down", "Left", "Right"</strong>
+               • Say: <strong>"Go Up", "Go Down", "Go Left", "Go Right"</strong>
             </p>
             <p>
-               • Click game area, then say <strong>"Go"</strong> to teleport
+               • Click game area, then say <strong>"Go Point"</strong> to
+               teleport
             </p>
             <p>
                • Collect all <strong>{TOTAL_STARS} stars</strong> to win

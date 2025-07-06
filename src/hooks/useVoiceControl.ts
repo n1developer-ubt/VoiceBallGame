@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Position } from "../types"
 
 export const useVoiceControl = (
@@ -8,185 +8,190 @@ export const useVoiceControl = (
    voiceMoveSpeed: number
 ) => {
    const [isListening, setIsListening] = useState(false)
-   const [recognition, setRecognition] = useState<any>(null)
    const [lastCommand, setLastCommand] = useState("")
 
+   const recognitionRef = useRef<SpeechRecognition | null>(null)
    const isListeningRef = useRef(false)
-   const recognitionInstanceRef = useRef<any>(null)
-   const commandHistoryRef = useRef<Map<string, number>>(new Map())
-   const processingTimeoutRef = useRef<number | null>(null)
-   const restartTimeoutRef = useRef<number | null>(null)
+   const processingRef = useRef(false)
+   const lastCommandProcessedRef = useRef("")
+   const commandTimeoutRef = useRef<number | null>(null)
 
+   // Process individual command words
+   const processCommand = useCallback(
+      (transcript: string) => {
+         if (processingRef.current) return
+
+         processingRef.current = true
+         console.log("Processing command:", transcript)
+
+         // Use longer phrases for better voice recognition
+         if (
+            (transcript.includes("go point") ||
+               transcript.includes("gopoint")) &&
+            targetPosition
+         ) {
+            console.log("Executing teleport to:", targetPosition)
+            onTeleport(targetPosition)
+            setLastCommand("go point")
+         } else if (transcript.includes("go up")) {
+            console.log("Moving up")
+            onMove(0, -voiceMoveSpeed)
+            setLastCommand("go up")
+         } else if (transcript.includes("go down")) {
+            console.log("Moving down")
+            onMove(0, voiceMoveSpeed)
+            setLastCommand("go down")
+         } else if (transcript.includes("go left")) {
+            console.log("Moving left")
+            onMove(-voiceMoveSpeed, 0)
+            setLastCommand("go left")
+         } else if (transcript.includes("go right")) {
+            console.log("Moving right")
+            onMove(voiceMoveSpeed, 0)
+            setLastCommand("go right")
+         }
+
+         // Reset processing flag after delay
+         setTimeout(() => {
+            processingRef.current = false
+         }, 1500)
+      },
+      [targetPosition, onMove, onTeleport, voiceMoveSpeed]
+   )
+
+   // Initialize speech recognition
    useEffect(() => {
-      isListeningRef.current = isListening
-   }, [isListening])
-
-   // Command processing with advanced deduplication
-   const processCommand = (command: string) => {
-      const now = Date.now()
-      const cleanCommand = command.replace(/\s+/g, " ").trim()
-
-      // Check if this exact command was processed recently (within 2 seconds)
-      const lastProcessed = commandHistoryRef.current.get(cleanCommand)
-      if (lastProcessed && now - lastProcessed < 2000) {
-         console.log("Ignoring duplicate command:", cleanCommand)
+      if (
+         !("webkitSpeechRecognition" in window) &&
+         !("SpeechRecognition" in window)
+      ) {
          return
       }
 
-      // Store command timestamp
-      commandHistoryRef.current.set(cleanCommand, now)
+      const SpeechRecognition =
+         (window as any).SpeechRecognition ||
+         (window as any).webkitSpeechRecognition
+      const recognition = new SpeechRecognition()
 
-      // Clean up old entries (older than 5 seconds)
-      for (const [cmd, timestamp] of commandHistoryRef.current.entries()) {
-         if (now - timestamp > 5000) {
-            commandHistoryRef.current.delete(cmd)
-         }
+      recognition.continuous = true
+      recognition.interimResults = true
+      recognition.lang = "en-US"
+      recognition.maxAlternatives = 1
+
+      recognition.onstart = () => {
+         console.log("Speech recognition started")
+         setIsListening(true)
+         isListeningRef.current = true
       }
 
-      console.log("Processing command:", cleanCommand)
-      setLastCommand(cleanCommand)
+      recognition.onresult = (event: any) => {
+         let finalTranscript = ""
+         let interimTranscript = ""
 
-      // Parse command with exact word matching
-      const words = cleanCommand.split(" ")
-
-      if (words.includes("go") && targetPosition) {
-         console.log("Executing teleport to:", targetPosition)
-         onTeleport(targetPosition)
-      } else if (words.includes("up")) {
-         console.log("Moving up")
-         onMove(0, -voiceMoveSpeed)
-      } else if (words.includes("down")) {
-         console.log("Moving down")
-         onMove(0, voiceMoveSpeed)
-      } else if (words.includes("left")) {
-         console.log("Moving left")
-         onMove(-voiceMoveSpeed, 0)
-      } else if (words.includes("right")) {
-         console.log("Moving right")
-         onMove(voiceMoveSpeed, 0)
-      }
-   }
-
-   // Restart recognition with controlled timing
-   const restartRecognition = (delay: number = 1000) => {
-      if (restartTimeoutRef.current) {
-         clearTimeout(restartTimeoutRef.current)
-      }
-
-      restartTimeoutRef.current = window.setTimeout(() => {
-         if (isListeningRef.current && recognitionInstanceRef.current) {
-            try {
-               recognitionInstanceRef.current.start()
-               console.log("Restarted speech recognition")
-            } catch (error) {
-               console.log("Failed to restart recognition:", error)
-               setIsListening(false)
-               isListeningRef.current = false
+         for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript
+            if (event.results[i].isFinal) {
+               finalTranscript += transcript
+            } else {
+               interimTranscript += transcript
             }
          }
-      }, delay)
-   }
 
-   useEffect(() => {
-      if (
-         "webkitSpeechRecognition" in window ||
-         "SpeechRecognition" in window
-      ) {
-         const SpeechRecognition =
-            (window as any).SpeechRecognition ||
-            (window as any).webkitSpeechRecognition
-         const recognitionInstance = new SpeechRecognition()
+         // Process final results
+         if (finalTranscript) {
+            const cleanTranscript = finalTranscript.toLowerCase().trim()
+            console.log("Final transcript:", cleanTranscript)
 
-         recognitionInstance.continuous = true
-         recognitionInstance.interimResults = false
-         recognitionInstance.lang = "en-US"
-         recognitionInstance.maxAlternatives = 1
+            // Process the full transcript for command phrases
+            if (
+               cleanTranscript &&
+               cleanTranscript !== lastCommandProcessedRef.current
+            ) {
+               console.log("Processing full transcript:", cleanTranscript)
 
-         recognitionInstance.onresult = (event: any) => {
-            console.log("Speech recognition result event:", event)
+               // Clear any existing timeout
+               if (commandTimeoutRef.current) {
+                  clearTimeout(commandTimeoutRef.current)
+               }
 
-            // Process only the latest final result
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-               const result = event.results[i]
-               if (result.isFinal) {
-                  const command = result[0].transcript.toLowerCase().trim()
-                  console.log("Final voice command received:", command)
+               // Process the command with a small delay
+               commandTimeoutRef.current = window.setTimeout(() => {
+                  if (cleanTranscript !== lastCommandProcessedRef.current) {
+                     lastCommandProcessedRef.current = cleanTranscript
+                     processCommand(cleanTranscript)
 
-                  if (command) {
-                     // Clear any pending processing
-                     if (processingTimeoutRef.current) {
-                        clearTimeout(processingTimeoutRef.current)
-                     }
+                     // Clear processed command after delay to allow new commands
+                     setTimeout(() => {
+                        lastCommandProcessedRef.current = ""
+                     }, 2000)
+                  }
+               }, 300)
+            }
+         }
+      }
 
-                     // Process command with a small delay to ensure stability
-                     processingTimeoutRef.current = window.setTimeout(() => {
-                        processCommand(command)
-                     }, 50)
+      recognition.onend = () => {
+         console.log("Speech recognition ended")
+         if (isListeningRef.current) {
+            // Restart recognition if we should still be listening
+            setTimeout(() => {
+               if (isListeningRef.current && recognitionRef.current) {
+                  try {
+                     recognitionRef.current.start()
+                     console.log("Restarted speech recognition")
+                  } catch (error) {
+                     console.log("Failed to restart recognition:", error)
+                     setIsListening(false)
+                     isListeningRef.current = false
                   }
                }
-            }
+            }, 100)
+         } else {
+            setIsListening(false)
          }
-
-         recognitionInstance.onstart = () => {
-            console.log("Speech recognition started")
-            setIsListening(true)
-         }
-
-         recognitionInstance.onend = () => {
-            console.log(
-               "Speech recognition ended, isListening:",
-               isListeningRef.current
-            )
-            if (isListeningRef.current) {
-               restartRecognition(1000)
-            } else {
-               setIsListening(false)
-            }
-         }
-
-         recognitionInstance.onerror = (event: any) => {
-            console.log("Speech recognition error:", event.error)
-
-            if (event.error === "no-speech" || event.error === "network") {
-               if (isListeningRef.current) {
-                  console.log(
-                     "Handling recoverable error, attempting restart..."
-                  )
-                  restartRecognition(1500)
-               }
-            } else if (event.error === "not-allowed") {
-               console.log("Microphone access denied")
-               setIsListening(false)
-               isListeningRef.current = false
-               alert(
-                  "Microphone access denied. Please allow microphone access and try again."
-               )
-            } else {
-               console.log("Non-recoverable error:", event.error)
-               setIsListening(false)
-               isListeningRef.current = false
-            }
-         }
-
-         setRecognition(recognitionInstance)
-         recognitionInstanceRef.current = recognitionInstance
       }
+
+      recognition.onerror = (event: any) => {
+         console.log("Speech recognition error:", event.error)
+
+         if (event.error === "no-speech" || event.error === "audio-capture") {
+            // These are recoverable errors, try to restart
+            if (isListeningRef.current) {
+               setTimeout(() => {
+                  if (isListeningRef.current && recognitionRef.current) {
+                     try {
+                        recognitionRef.current.start()
+                        console.log("Restarted after error")
+                     } catch (error) {
+                        console.log("Failed to restart after error:", error)
+                        setIsListening(false)
+                        isListeningRef.current = false
+                     }
+                  }
+               }, 1000)
+            }
+         } else {
+            // Non-recoverable error
+            console.log("Non-recoverable error:", event.error)
+            setIsListening(false)
+            isListeningRef.current = false
+         }
+      }
+
+      recognitionRef.current = recognition
 
       return () => {
-         if (recognitionInstanceRef.current) {
-            recognitionInstanceRef.current.stop()
+         if (recognitionRef.current) {
+            recognitionRef.current.stop()
          }
-         if (processingTimeoutRef.current) {
-            clearTimeout(processingTimeoutRef.current)
-         }
-         if (restartTimeoutRef.current) {
-            clearTimeout(restartTimeoutRef.current)
+         if (commandTimeoutRef.current) {
+            clearTimeout(commandTimeoutRef.current)
          }
       }
-   }, [targetPosition, onMove, onTeleport, voiceMoveSpeed])
+   }, [processCommand])
 
-   const toggleVoiceControl = () => {
-      if (!recognition) {
+   const toggleVoiceControl = useCallback(() => {
+      if (!recognitionRef.current) {
          alert(
             "Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari."
          )
@@ -196,26 +201,26 @@ export const useVoiceControl = (
       if (isListening) {
          console.log("Stopping voice control")
          isListeningRef.current = false
-         recognition.stop()
+         recognitionRef.current.stop()
          setIsListening(false)
+         setLastCommand("")
 
-         // Clear all timeouts and history
-         if (processingTimeoutRef.current) {
-            clearTimeout(processingTimeoutRef.current)
-            processingTimeoutRef.current = null
+         // Clear states
+         lastCommandProcessedRef.current = ""
+         processingRef.current = false
+         if (commandTimeoutRef.current) {
+            clearTimeout(commandTimeoutRef.current)
+            commandTimeoutRef.current = null
          }
-         if (restartTimeoutRef.current) {
-            clearTimeout(restartTimeoutRef.current)
-            restartTimeoutRef.current = null
-         }
-         commandHistoryRef.current.clear()
       } else {
          console.log("Starting voice control")
          isListeningRef.current = true
-         commandHistoryRef.current.clear()
+         lastCommandProcessedRef.current = ""
+         processingRef.current = false
+         setLastCommand("")
 
          try {
-            recognition.start()
+            recognitionRef.current.start()
          } catch (error) {
             console.log("Failed to start recognition:", error)
             isListeningRef.current = false
@@ -223,7 +228,7 @@ export const useVoiceControl = (
             alert("Failed to start voice recognition. Please try again.")
          }
       }
-   }
+   }, [isListening])
 
    return {
       isListening,
