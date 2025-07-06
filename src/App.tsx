@@ -55,10 +55,10 @@ function App() {
    const isBallActive = keysPressed.size > 0 || Boolean(lastCommand)
 
    return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden'>
+      <div className='min-h-screen bg-black overflow-hidden'>
          <div className='flex h-screen'>
             {/* Left side - Game Area (80%) */}
-            <div className='w-4/5 flex items-center justify-center p-6'>
+            <div className='w-4/5 flex items-center justify-center p-6 bg-gradient-to-br from-gray-900 to-black'>
                <div className='relative'>
                   <GameArea
                      ballPosition={ballPosition}
@@ -71,19 +71,19 @@ function App() {
             </div>
 
             {/* Right side - Controls and Info (20%) */}
-            <div className='w-1/5 bg-white/10 backdrop-blur-md border-l border-white/20 overflow-y-auto'>
+            <div className='w-1/5 bg-white border-l border-gray-300 overflow-y-auto'>
                <div className='p-6 space-y-6'>
                   {/* Header */}
                   <div className='text-center'>
-                     <h1 className='text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2'>
-                        <Gamepad2 className='text-yellow-400' size={24} />
+                     <h1 className='text-2xl font-bold text-black mb-2 flex items-center justify-center gap-2'>
+                        <Gamepad2 className='text-gray-600' size={24} />
                         Voice Ball
                      </h1>
-                     <p className='text-white/80 text-sm'>Collect all stars!</p>
+                     <p className='text-gray-600 text-sm'>Collect all stars!</p>
                   </div>
 
                   {/* Score Display */}
-                  <div className='bg-yellow-500/20 backdrop-blur-sm rounded-xl px-4 py-3 border border-yellow-400/30'>
+                  <div className='bg-gray-100 rounded-xl px-4 py-3 border border-gray-300'>
                      <ScoreDisplay score={score} />
                   </div>
 

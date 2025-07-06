@@ -24,7 +24,7 @@ export const CollectibleStars: React.FC<CollectibleStarsProps> = ({
                      }}>
                      <Star
                         size={STAR_SIZE}
-                        className='text-yellow-300 fill-yellow-300 animate-pulse drop-shadow-lg'
+                        className='text-black fill-black animate-pulse drop-shadow-lg'
                      />
                   </div>
                )

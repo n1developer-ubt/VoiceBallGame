@@ -3,9 +3,9 @@ import { TOTAL_STARS } from "../../constants/gameConstants"
 
 export const Instructions: React.FC = () => {
    return (
-      <div className='bg-white/10 rounded-xl p-4 backdrop-blur-sm'>
-         <h3 className='font-semibold text-white mb-2'>How to Play</h3>
-         <div className='text-white/80 text-xs space-y-1'>
+      <div className='bg-gray-100 rounded-xl p-4 border border-gray-300'>
+         <h3 className='font-semibold text-black mb-2'>How to Play</h3>
+         <div className='text-gray-700 text-xs space-y-1'>
             <p>• Use arrow keys to move</p>
             <p>
                • Say: <strong>"Up", "Down", "Left", "Right"</strong>

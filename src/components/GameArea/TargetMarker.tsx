@@ -18,9 +18,9 @@ export const TargetMarker: React.FC<TargetMarkerProps> = ({ position }) => {
          }}>
          <Target
             size={24}
-            className='text-red-400 animate-pulse drop-shadow-lg'
+            className='text-gray-600 animate-pulse drop-shadow-lg'
          />
-         <div className='absolute inset-0 bg-red-400/20 rounded-full animate-ping'></div>
+         <div className='absolute inset-0 bg-gray-600/20 rounded-full animate-ping'></div>
       </div>
    )
 }

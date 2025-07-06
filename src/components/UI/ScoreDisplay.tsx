@@ -8,7 +8,7 @@ interface ScoreDisplayProps {
 
 export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score }) => {
    return (
-      <div className='flex items-center gap-2 text-yellow-300'>
+      <div className='flex items-center gap-2 text-black'>
          <Star size={20} className='fill-current' />
          <span className='font-bold text-lg'>
             {score}/{TOTAL_STARS}

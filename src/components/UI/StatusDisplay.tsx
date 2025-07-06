@@ -17,32 +17,32 @@ export const StatusDisplay: React.FC<StatusDisplayProps> = ({
 }) => {
    return (
       <div className='space-y-4'>
-         <div className='bg-white/20 rounded-xl p-4 backdrop-blur-sm'>
-            <h3 className='font-semibold text-white mb-2 flex items-center gap-2'>
+         <div className='bg-gray-100 rounded-xl p-4 border border-gray-300'>
+            <h3 className='font-semibold text-black mb-2 flex items-center gap-2'>
                <Volume2 size={16} />
                Voice Status
             </h3>
-            <p className='text-white/80 text-sm'>
+            <p className='text-gray-700 text-sm'>
                Status:{" "}
                <span
                   className={`font-semibold ${
-                     isListening ? "text-green-300" : "text-red-300"
+                     isListening ? "text-black" : "text-gray-500"
                   }`}>
                   {isListening ? "Listening" : "Not Listening"}
                </span>
             </p>
             {lastCommand && (
-               <p className='text-white/80 mt-1 text-sm'>
+               <p className='text-gray-700 mt-1 text-sm'>
                   Last:{" "}
-                  <span className='font-mono text-yellow-300'>
+                  <span className='font-mono text-black font-semibold'>
                      "{lastCommand}"
                   </span>
                </p>
             )}
             {targetPosition && (
-               <p className='text-white/80 mt-1 text-sm'>
+               <p className='text-gray-700 mt-1 text-sm'>
                   Target:{" "}
-                  <span className='font-mono text-red-300'>
+                  <span className='font-mono text-gray-600'>
                      ({Math.round(targetPosition.x)},{" "}
                      {Math.round(targetPosition.y)})
                   </span>
@@ -50,17 +50,17 @@ export const StatusDisplay: React.FC<StatusDisplayProps> = ({
             )}
          </div>
 
-         <div className='bg-white/20 rounded-xl p-4 backdrop-blur-sm'>
-            <h3 className='font-semibold text-white mb-2'>Ball Position</h3>
-            <p className='text-white/80 text-sm'>
+         <div className='bg-gray-100 rounded-xl p-4 border border-gray-300'>
+            <h3 className='font-semibold text-black mb-2'>Ball Position</h3>
+            <p className='text-gray-700 text-sm'>
                X:{" "}
-               <span className='font-mono text-blue-300'>
+               <span className='font-mono text-black font-semibold'>
                   {Math.round(ballPosition.x)}
                </span>
             </p>
-            <p className='text-white/80 text-sm'>
+            <p className='text-gray-700 text-sm'>
                Y:{" "}
-               <span className='font-mono text-blue-300'>
+               <span className='font-mono text-black font-semibold'>
                   {Math.round(ballPosition.y)}
                </span>
             </p>

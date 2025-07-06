@@ -23,13 +23,13 @@ export const GameArea: React.FC<GameAreaProps> = ({
    return (
       <div className='relative mb-6'>
          <div
-            className='relative bg-gradient-to-br from-green-400 to-blue-500 rounded-2xl shadow-inner border-4 border-white/30 overflow-hidden cursor-crosshair'
+            className='relative bg-white rounded-2xl shadow-2xl border-4 border-gray-300 overflow-hidden cursor-crosshair'
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT }}
             onClick={onAreaClick}>
-            <div className='absolute inset-0 opacity-20'>
+            <div className='absolute inset-0 opacity-10'>
                <div className='grid grid-cols-8 grid-rows-8 w-full h-full'>
                   {Array.from({ length: 64 }).map((_, i) => (
-                     <div key={i} className='border border-white/30'></div>
+                     <div key={i} className='border border-gray-300'></div>
                   ))}
                </div>
             </div>

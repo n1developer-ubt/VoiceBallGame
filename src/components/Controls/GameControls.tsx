@@ -18,10 +18,10 @@ export const GameControls: React.FC<GameControlsProps> = ({
       <div className='flex flex-col gap-3'>
          <button
             onClick={onToggleVoice}
-            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all duration-200 shadow-lg text-sm ${
+            className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold shadow-lg text-sm border-2 ${
                isListening
-                  ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
-                  : "bg-green-500 hover:bg-green-600 text-white hover:scale-105"
+                  ? "bg-black text-white border-black hover:bg-gray-800 "
+                  : "bg-white text-black border-black hover:bg-gray-100 hover:scale-105"
             }`}>
             {isListening ? <MicOff size={16} /> : <Mic size={16} />}
             {isListening ? "Stop" : "Start Voice"}
@@ -29,13 +29,13 @@ export const GameControls: React.FC<GameControlsProps> = ({
 
          <button
             onClick={onResetPosition}
-            className='flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105 text-sm'>
+            className='flex items-center justify-center gap-2 px-4 py-2 bg-white text-black border-2 border-black rounded-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105 hover:bg-gray-100 text-sm'>
             Reset Position
          </button>
 
          <button
             onClick={onResetGame}
-            className='flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105 text-sm'>
+            className='flex items-center justify-center gap-2 px-4 py-2 bg-black text-white border-2 border-black rounded-lg font-semibold transition-all duration-200 shadow-lg hover:scale-105 hover:bg-gray-800 text-sm'>
             <RotateCcw size={16} />
             New Game
          </button>
